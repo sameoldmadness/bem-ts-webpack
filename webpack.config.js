@@ -1,42 +1,45 @@
-module.exports = {
-    mode: 'development',
-    watch: true,
-    resolve: {
-        extensions: ['.ts', '.tsx', '.js']
-    },
-    module: {
-        rules: [
-            {
-                test: /\.(j|t)sx?/,
-                exclude: /node_modules/,
-                // include: [/node_modules\/bem-react-components/, /src/],
-                use: [
-                    // {
-                    //     loader: 'webpack-bem-loader',
-                    //     options: {
-                    //         levels: [
-                    //             './node_modules/bem-react-components/blocks',
-                    //             './src/my-awesome-blocks'
-                    //         ],
-                    //         techs: ['js', 'css'],
-                    //     }
-                    // },
-                    {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: [
-                                '@babel/env',
-                                '@babel/react',
-                                '@babel/typescript',
-                            ],
-                            plugins: [
-                                '@babel/proposal-class-properties',
-                                '@babel/proposal-object-rest-spread',
-                            ],
-                        },
-                    },
+function makeTypeScriptLoader({ babel }) {
+    if (babel) {
+        return {
+            loader: 'babel-loader',
+            options: {
+                presets: [
+                    '@babel/react',
+                    '@babel/typescript',
                 ],
             },
-        ],
-    },
-};
+        };
+    }
+
+    return {
+        loader: 'ts-loader',
+    };
+}
+
+function makeConfig({ babel }) {
+    return {
+        devtool: false,
+        resolve: {
+            extensions: ['.ts', '.tsx', '.js']
+        },
+        output: {
+            filename: `[name]-${babel ? 'babel' : 'ts'}.js`,
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?/,
+                    exclude: /node_modules/,
+                    use: [
+                        makeTypeScriptLoader({ babel }),
+                    ],
+                },
+            ],
+        },
+    };
+}
+
+module.exports = [
+    makeConfig({ babel: false }),
+    makeConfig({ babel: true }),
+];
